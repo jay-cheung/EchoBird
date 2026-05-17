@@ -471,11 +471,12 @@ export function MotherAgentMain() {
 // mode (delegate this turn to an installed CLI agent). Hidden when no
 // supported agent is installed locally.
 
-// Scope narrowed to Claude Code only — Hermes Agent and OpenClaw were
-// dropped to focus polish on the one agent we actively support.
-const PARASITE_LABELS: Record<string, string> = {
-  claudecode: 'Claude Code',
-};
+// Single-button toggle for Claude Code. Three visual states encode the full
+// UX without any verbs (no "接入" / "断开" labels):
+//   • not installed  → grey, unclickable, tooltip points the user to install
+//   • installed off  → accent-color outline, click to enter parasite mode
+//   • installed on   → accent-color filled, click to exit parasite mode
+const CLAUDE_CODE_ID = 'claudecode';
 
 interface ParasitePickerProps {
   locale: string;
@@ -486,50 +487,40 @@ interface ParasitePickerProps {
 }
 
 function ParasitePicker({ locale, available, current, onChange, disabled }: ParasitePickerProps) {
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
   const zh = locale === 'zh' || locale === 'zh-Hans';
-  const label = zh ? '接入' : 'Connect';
   const tooltip = zh
-    ? '我擅长 AI 起步 — 短暂记忆 + 一套成熟的安装部署脚本，帮你跑通各种 AI 代理。想正经长聊？装好 Claude Code 后，点 接入 让它接手对话。'
-    : "I'm built for AI onboarding — short memory, but battle-tested install/deploy scripts that get you running with any AI agent. Want a real long-form conversation? Install Claude Code, then tap Connect to hand the chat over.";
-  const activeLabel = current ? PARASITE_LABELS[current] || current : null;
-  const noneInstalled = available.length === 0;
-  const exitLabel = zh ? '断开接入' : 'Disconnect';
-  const noneLabel = zh ? '未检测到可接入的代理' : 'No connectable agent detected';
+    ? '我仅拥有短暂记忆 + 完善的安装能力，助你在 AI 赛道启航。建议安装并配置 Claude Code，让它接手为你服务。'
+    : 'I only have short-term memory + polished install/deploy skills — built to launch you into AI. Install and configure Claude Code, then let it take the conversation forward.';
 
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  const installed = available.includes(CLAUDE_CODE_ID);
+  const active = current === CLAUDE_CODE_ID;
+  const canClick = installed && !disabled;
 
-  // Use the themed-tooltip explanation when the picker is in normal operation,
-  // and the "nothing detected" line when there's literally nothing to pick.
-  const hintText = noneInstalled ? noneLabel : tooltip;
+  const handleClick = () => {
+    if (!canClick) return;
+    onChange(active ? null : CLAUDE_CODE_ID);
+  };
 
   return (
-    <div ref={wrapperRef} className="relative flex items-center gap-1">
+    <div className="relative flex items-center gap-1">
       <button
-        onClick={() => !disabled && !noneInstalled && setOpen((o) => !o)}
-        disabled={disabled || noneInstalled}
+        onClick={handleClick}
+        disabled={!canClick}
         className={`flex items-center gap-1 px-2 h-7 rounded-lg text-xs border transition-colors ${
-          current
-            ? 'bg-cyber-accent/15 border-cyber-accent/50 text-cyber-accent'
-            : 'bg-cyber-surface border-cyber-border text-cyber-text-secondary hover:bg-cyber-elevated hover:text-cyber-text'
-        } disabled:opacity-40 disabled:cursor-not-allowed`}
+          !installed
+            ? 'bg-cyber-surface/40 border-cyber-border/40 text-cyber-text-muted cursor-not-allowed'
+            : active
+              ? 'bg-cyber-accent text-cyber-bg border-cyber-accent'
+              : 'bg-cyber-surface border-cyber-accent/60 text-cyber-accent hover:bg-cyber-accent/10'
+        }`}
       >
-        <Zap size={12} className={current ? 'fill-current' : ''} />
-        <span className="font-medium">{activeLabel || label}</span>
+        <Zap size={12} className={active ? 'fill-current' : ''} />
+        <span className="font-medium">Claude Code</span>
       </button>
       {/* Themed help glyph — same shape as AppManager's relay-mode "?". */}
       <span className="group relative inline-flex items-center">
         <span
-          aria-label={hintText}
+          aria-label={tooltip}
           className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyber-elevated font-sans text-xs font-medium leading-none text-cyber-text-secondary cursor-help select-none hover:bg-cyber-accent/15 hover:text-cyber-accent transition-colors"
         >
           ?
@@ -544,41 +535,9 @@ function ParasitePicker({ locale, available, current, onChange, disabled }: Para
             aria-hidden="true"
             className="absolute -bottom-1 right-2 h-2 w-2 rotate-45 border-b border-r border-cyber-accent/40 bg-cyber-elevated"
           />
-          {hintText}
+          {tooltip}
         </span>
       </span>
-      {open && (
-        <div className="absolute right-0 bottom-full mb-1 min-w-[180px] bg-cyber-elevated border border-cyber-border rounded-lg shadow-lg z-20 py-1">
-          {current && (
-            <button
-              onClick={() => {
-                onChange(null);
-                setOpen(false);
-              }}
-              className="w-full px-3 py-1.5 text-xs text-left text-cyber-text-secondary hover:bg-cyber-surface hover:text-cyber-text"
-            >
-              {exitLabel}
-            </button>
-          )}
-          {current && available.length > 0 && (
-            <div className="my-1 border-t border-cyber-border/60" />
-          )}
-          {available.map((id) => (
-            <button
-              key={id}
-              onClick={() => {
-                onChange(id);
-                setOpen(false);
-              }}
-              className={`w-full px-3 py-1.5 text-xs text-left hover:bg-cyber-surface hover:text-cyber-text ${
-                id === current ? 'text-cyber-accent' : 'text-cyber-text-secondary'
-              }`}
-            >
-              {PARASITE_LABELS[id] || id}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
