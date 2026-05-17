@@ -492,8 +492,8 @@ function ParasitePicker({ locale, available, current, onChange, disabled }: Para
   const zh = locale === 'zh' || locale === 'zh-Hans';
   const label = zh ? '寄生' : 'Parasite';
   const tooltip = zh
-    ? '已安装 OpenClaw / Claude Code / Hermes Agent 时，把本轮对话委托给它们运行 — 用它们的人格、工具和记忆，本轮不走 EchoBird 自己的引擎。'
-    : "When OpenClaw / Claude Code / Hermes Agent is installed, delegate this turn to that agent — using its persona, tools, and memory instead of EchoBird's built-in engine.";
+    ? '我自己只有短暂记忆。装好 Claude Code、Hermes Agent 或 OpenClaw 并配置模型后，点击寄生 — 我会借用它们的能力跑这一轮：持久记忆、自带技能、成熟工具集。'
+    : "My own memory is short-lived. Install Claude Code, Hermes Agent, or OpenClaw with a model configured, then tap Parasite — I'll borrow their capabilities for this turn: persistent memory, built-in skills, and a mature toolset.";
   const activeLabel = current ? PARASITE_LABELS[current] || current : null;
   const noneInstalled = available.length === 0;
   const exitLabel = zh ? '退出寄生' : 'Exit parasite';
