@@ -168,7 +168,8 @@ export const LocalServerMain: React.FC = () => {
   const hasNvidiaGpu = systemInfo ? systemInfo.hasNvidiaGpu : false;
   const hasAmdGpu = systemInfo ? ((systemInfo as any).hasAmdGpu ?? false) : false;
   const runtimeOptions = [
-    { id: 'llama-server', label: 'llama.cpp' },
+    // llama.cpp: Windows / macOS only — Linux users go to vLLM / SGLang
+    ...(isLinux ? [] : [{ id: 'llama-server', label: 'llama.cpp' }]),
     // vLLM / SGLang: Linux + NVIDIA or AMD GPU only
     ...(isLinux && (hasNvidiaGpu || hasAmdGpu)
       ? [
@@ -177,6 +178,13 @@ export const LocalServerMain: React.FC = () => {
         ]
       : []),
   ];
+
+  // Linux: default runtime swaps from llama-server to vllm once systemInfo loads
+  useEffect(() => {
+    if (isLinux && runtime === 'llama-server') {
+      setRuntime('vllm');
+    }
+  }, [isLinux, runtime, setRuntime]);
 
   // Server state
   const [logs, setLogs] = useState<string[]>([]);
