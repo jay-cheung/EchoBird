@@ -134,7 +134,7 @@ const zhHans: Partial<Translations> = {
   'toolCat.utility': '工具',
   'agent.modelsTab': '模型',
   'agent.codexRelayLabel': '上游直连',
-  'agent.codexRelayHint': '通过网络中转或 API Router 接入官方服务器,模型和工具均属同一家公司。',
+  'agent.codexRelayHint': '通过网络中转或 API Router 接入官方服务器,模型和应用均属同一家公司。',
   'agent.installViaMother': 'AI 自动安装',
   'tool.models': '模型',
   'tool.app': '应用',
