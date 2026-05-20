@@ -39,8 +39,14 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     [t, goToMother]
   );
 
-  // Load models internally
+  // Load models internally. userModels is consumed by BOTH the AppManager
+  // right panel AND the 我的AI项目 right panel (same ModelListSection
+  // component), so reload on either activation — otherwise a model added
+  // in 模型中心 only surfaces in 我的AI项目 after the user incidentally
+  // bounces through 应用管理 (which flips isActive). The extra trigger
+  // is free in practice (IPC + a couple of file reads on local Rust).
   const [userModels, setUserModels] = useState<ModelConfig[]>([]);
+  const userModelsActive = isActive || activePage === 'myProjects';
   useEffect(() => {
     if (api.getModels) {
       api
@@ -48,7 +54,7 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         .then(setUserModels)
         .catch((e) => console.error('Load models failed:', e));
     }
-  }, [isActive]);
+  }, [userModelsActive]);
 
   // AI-installable IDs from bundled install/index.json (offline-first).
   const [aiInstallableIds, setAiInstallableIds] = useState<string[]>([]);
