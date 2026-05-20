@@ -6,7 +6,7 @@
 // is filled in once we add the Rust read_active_model command for user
 // projects (deferred to a follow-up turn — placeholder shows "—" for now).
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Folder, Pencil, Trash2, X, FolderHeart } from 'lucide-react';
+import { Plus, Folder, Pencil, Trash2, X } from 'lucide-react';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { useI18n } from '../../hooks/useI18n';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../../stores/myProjectsStore';
 import { useToolsStore } from '../../stores/toolsStore';
 import { useAppManager } from '../AppManager/context';
+import { ToolCard } from '../../components';
 
 // Placeholder examples shown inside the file-picker fields when nothing's
 // been chosen yet. Kept in English path style across all locales — the
@@ -97,7 +98,7 @@ export const MyProjectsMain: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {projects.map((p) => (
-            <ProjectCard
+            <ProjectToolCard
               key={p.id}
               project={p}
               selected={!!p.linkedToolId && selectedTool === p.linkedToolId}
@@ -124,9 +125,14 @@ export const MyProjectsMain: React.FC = () => {
   );
 };
 
-// ── Individual project card ──
+// ── ProjectToolCard ──
+// Thin adapter that maps a stored MyProject onto AppManager's ToolCard so
+// every card on this page renders with the exact same visual treatment as
+// the App Manager grid (title size, info-row colour, padding, hover state,
+// selection border). The only page-specific bit is the `actions` slot,
+// which fills the "版本: …" row with Edit / Delete buttons.
 
-const ProjectCard: React.FC<{
+const ProjectToolCard: React.FC<{
   project: MyProject;
   selected: boolean;
   onSelect: () => void;
@@ -136,87 +142,53 @@ const ProjectCard: React.FC<{
   const detectedTools = useToolsStore((s) => s.detectedTools);
   const deleteProject = useMyProjectsStore((s) => s.deleteProject);
 
-  // For seeded built-ins, mirror the active model id off the live tool scan
-  // so the card stays in sync when the user swaps the model from the right
-  // panel — same source App Manager reads from. User-only projects get a
-  // dash until Phase D adds models.json model-id read-back.
-  const activeModel = project.linkedToolId
-    ? detectedTools.find((t) => t.id === project.linkedToolId)?.activeModel
+  // Seeded built-ins (linkedToolId set) read their live activeModel + icon
+  // off the running tool scan, so swapping the model from the right panel
+  // updates the card in place. User-only projects show a placeholder until
+  // Phase D adds models.json read-back.
+  const linked = project.linkedToolId
+    ? detectedTools.find((tool) => tool.id === project.linkedToolId)
     : undefined;
 
-  const iconSrc = iconSrcFor(project.iconPath);
-
   return (
-    <div
+    <ToolCard
+      // Built-ins fall through to the bundled ./icons/tools/<id>.svg path by
+      // their tool id; user projects pass their own iconSrc and keep the
+      // project id (for whatever click handling needs it later).
+      id={project.linkedToolId || project.id}
+      iconSrc={project.linkedToolId ? undefined : iconSrcFor(project.iconPath)}
+      name={project.name}
+      installed
+      detectedPath={project.launcherPath}
+      configPath={project.modelsJsonPath}
+      activeModel={linked?.activeModel}
+      selected={selected}
       onClick={onSelect}
-      className={`relative p-5 border rounded-card bg-cyber-surface flex flex-col min-h-[160px] group transition-colors cursor-pointer ${
-        selected ? 'border-cyber-accent' : 'border-cyber-border hover:border-cyber-text/30'
-      }`}
-    >
-      {/* Icon top-right — accepts Vite-served URLs (./icons/...) for seeded
-          built-ins and absolute file:// paths for user-picked icons. Falls
-          back to FolderHeart on missing file or load error. */}
-      <div className="absolute top-4 right-4 w-10 h-10 rounded-lg bg-cyber-elevated flex items-center justify-center overflow-hidden">
-        {iconSrc ? (
-          <img
-            src={iconSrc}
-            alt=""
-            className="w-7 h-7 object-contain"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = 'none';
+      actions={
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(project.id);
             }}
-          />
-        ) : (
-          <FolderHeart size={20} className="text-cyber-text-secondary" />
-        )}
-      </div>
-
-      <h3 className="text-[15px] font-semibold text-cyber-text mb-4 pr-12 truncate">
-        {project.name}
-      </h3>
-
-      <div className="space-y-1.5 text-[12px] text-cyber-text-secondary flex-1">
-        <div className="truncate">
-          <span className="text-cyber-text-muted">模型: </span>
-          <span>{activeModel || '—'}</span>
+            className="text-[12px] text-cyber-text-secondary hover:text-cyber-text px-2 py-0.5 rounded hover:bg-cyber-elevated transition-colors flex items-center gap-1"
+          >
+            <Pencil size={12} />
+            {t('btn.edit')}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteProject(project.id);
+            }}
+            className="text-[12px] text-cyber-text-secondary hover:text-cyber-error px-2 py-0.5 rounded hover:bg-cyber-elevated transition-colors flex items-center gap-1"
+          >
+            <Trash2 size={12} />
+            {t('btn.delete')}
+          </button>
         </div>
-        <div className="truncate">
-          <span className="text-cyber-text-muted">应用: </span>
-          <span>{project.launcherPath || '—'}</span>
-        </div>
-        <div className="truncate">
-          <span className="text-cyber-text-muted">配置: </span>
-          <span>{project.modelsJsonPath || '—'}</span>
-        </div>
-      </div>
-
-      {/* Actions row — replaces the "版本: 1.0" line that App Manager renders.
-          User-developed projects don't have a meaningful version concept, so
-          we use the same slot for the delete/edit affordance. Buttons stop
-          propagation so they don't also trigger card selection. */}
-      <div className="flex items-center justify-end gap-2 mt-3 opacity-70 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(project.id);
-          }}
-          className="text-[12px] text-cyber-text-secondary hover:text-cyber-text px-2 py-0.5 rounded hover:bg-cyber-elevated transition-colors flex items-center gap-1"
-        >
-          <Pencil size={12} />
-          {t('btn.edit')}
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            deleteProject(project.id);
-          }}
-          className="text-[12px] text-cyber-text-secondary hover:text-cyber-error px-2 py-0.5 rounded hover:bg-cyber-elevated transition-colors flex items-center gap-1"
-        >
-          <Trash2 size={12} />
-          {t('btn.delete')}
-        </button>
-      </div>
-    </div>
+      }
+    />
   );
 };
 

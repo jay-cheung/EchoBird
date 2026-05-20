@@ -20,10 +20,19 @@ export interface ToolCardProps {
   selected?: boolean;
   onClick?: () => void;
   onMotherAgentInstall?: () => void;
-  /** Hide the "版本: …" line — used on the "我的AI项目" page where
-   *  bundled samples are presented as Vibe-Coding references and the
-   *  version number is just noise. App Manager still renders it. */
+  /** Hide the "版本: …" line. App Manager renders it; "我的AI项目" passes
+   *  `actions` (which implicitly hides it too) — so this prop is mostly
+   *  reserved for future pages that want a 3-row variant with no actions. */
   hideVersion?: boolean;
+  /** When provided, replaces the version row with caller-supplied controls
+   *  (typically [Edit] / [Delete] for the "我的AI项目" page). Buttons
+   *  inside should call e.stopPropagation() so action clicks don't also
+   *  fire the card's onClick. */
+  actions?: React.ReactNode;
+  /** Override the default icon source. Defaults to ./icons/tools/<id>.svg,
+   *  which works for every bundled tool but not for user-added projects on
+   *  "我的AI项目" — they pass an absolute file:// path the user picked. */
+  iconSrc?: string;
 }
 
 export const ToolCard = React.memo(
@@ -45,6 +54,8 @@ export const ToolCard = React.memo(
     onClick,
     onMotherAgentInstall,
     hideVersion = false,
+    actions,
+    iconSrc,
   }: ToolCardProps) => {
     const { t, locale } = useI18n();
     const displayName =
@@ -73,11 +84,17 @@ export const ToolCard = React.memo(
       >
         {/* Tool icon top-right */}
         <img
-          src={`./icons/tools/${id}.svg`}
+          src={iconSrc || `./icons/tools/${id}.svg`}
           alt={name}
           className={`absolute top-4 right-4 w-10 h-10 rounded-lg ${selected ? 'opacity-100' : installed ? 'opacity-60' : showMotherInstall ? 'opacity-30' : 'opacity-20'}`}
           onError={(e) => {
             const img = e.target as HTMLImageElement;
+            // Caller supplied iconSrc — no built-in fallback chain (their path
+            // failed, ours wouldn't help). Hide and move on.
+            if (iconSrc) {
+              img.style.display = 'none';
+              return;
+            }
             if (img.src.endsWith('.svg')) {
               img.src = `./icons/tools/${id}.png`;
             } else if (!img.src.startsWith('data:') && iconBase64) {
@@ -107,11 +124,13 @@ export const ToolCard = React.memo(
             <div className="truncate">
               {t('tool.config')}: {installed ? configPath || '-' : '-'}
             </div>
-            {!hideVersion && (
-              <div className="truncate">
-                {t('tool.version')}: {installed ? version || '-' : '-'}
-              </div>
-            )}
+            {actions
+              ? actions
+              : !hideVersion && (
+                  <div className="truncate">
+                    {t('tool.version')}: {installed ? version || '-' : '-'}
+                  </div>
+                )}
           </div>
           {showMotherInstall && (
             <div className="absolute inset-0 flex items-center justify-center">
