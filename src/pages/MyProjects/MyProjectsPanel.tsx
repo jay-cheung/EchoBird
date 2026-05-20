@@ -23,16 +23,18 @@ import { ModelListSection } from '../AppManager/AppManagerComponents';
 
 /// Build a synthetic LocalTool from a user project so the existing
 /// ModelListSection can render its model list without any
-/// user-project-specific code path. Dual-protocol by default — user
-/// projects' models.json are typically copied from Reversi/Translator
-/// which support both, and we don't have a stronger signal for what they
-/// actually want.
+/// user-project-specific code path. Declared single-protocol (`openai`)
+/// solely to suppress ModelListSection's OpenAI⇄Anthropic toggle —
+/// `apply_user_project_model` writes all 4 fields (modelId / baseUrl /
+/// anthropicUrl / apiKey) flat regardless, so the toggle would be a
+/// no-op cosmetic widget here. Cards still fall back to anthropicUrl
+/// when baseUrl is empty, so Anthropic-only models display correctly.
 const synthesiseToolFromProject = (id: string, name: string): LocalTool => ({
   id,
   name,
   category: 'Utility',
   installed: true,
-  apiProtocol: ['openai', 'anthropic'],
+  apiProtocol: ['openai'],
   noModelConfig: false,
 });
 
@@ -147,15 +149,14 @@ export const MyProjectsBottom: React.FC = () => {
     if (!project || isLaunching) return;
     setIsLaunching(true);
     try {
-      // 1) Optionally write model into the user's configFile per their
-      //    models.json's write map. Silent on every failure — that's the
-      //    spec; we hand the user a knife and they decide where to point it.
+      // 1) Optionally write the 4 model fields flat into the project's
+      //    models.json. Silent on every failure — spec; we hand the user
+      //    a knife and they decide where to point it.
       if (willApply) {
         const model = userModels.find((m) => m.internalId === chosenModelId!);
         if (model && project.modelsJsonPath) {
           try {
             await api.applyUserProjectModel(project.modelsJsonPath, {
-              name: model.name,
               model: model.modelId,
               baseUrl: model.baseUrl,
               apiKey: model.apiKey,
