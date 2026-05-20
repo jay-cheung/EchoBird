@@ -114,7 +114,7 @@ export const ToolCard = React.memo(
             {/* Editable layout — actions occupy the top-right slot, icon
                 rides inline-left of the title so the affordance is in the
                 same place as ModelCard. */}
-            <div className="absolute top-3 right-3 z-10 flex gap-1.5">{actions}</div>
+            <div className="absolute top-2 right-2 z-10 flex gap-1.5">{actions}</div>
             <div className="flex items-center gap-2 pr-24">
               <img
                 src={iconUrl}
