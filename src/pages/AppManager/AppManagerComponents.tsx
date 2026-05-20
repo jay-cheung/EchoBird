@@ -437,57 +437,57 @@ export const AppManagerPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Relay-toggle slot: always reserved height so the model list below
-          doesn't jump when switching between relay-capable apps (Codex,
-          Claude Desktop) and others. */}
-      <div className="px-3 h-9 flex items-center">
-        {showRelayToggle && (
-          <>
-            <span className="text-xs text-cyber-text-secondary mr-2">
-              {t('agent.codexRelayLabel')}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={relayModeValue}
-              aria-label={t('agent.codexRelayLabel')}
-              onClick={() => setRelayModeValue(!relayModeValue)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyber-accent mr-2 ${
-                relayModeValue ? 'bg-cyber-accent' : 'bg-cyber-border'
+      {/* Relay-toggle row: only mounted for apps that actually expose the
+          toggle (Codex, Claude Desktop). For everything else nothing
+          renders here and the model list below claims the space — the
+          user explicitly preferred no reserved gap when the toggle is
+          absent. */}
+      {showRelayToggle && (
+        <div className="px-3 h-9 flex items-center">
+          <span className="text-xs text-cyber-text-secondary mr-2">
+            {t('agent.codexRelayLabel')}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={relayModeValue}
+            aria-label={t('agent.codexRelayLabel')}
+            onClick={() => setRelayModeValue(!relayModeValue)}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyber-accent mr-2 ${
+              relayModeValue ? 'bg-cyber-accent' : 'bg-cyber-border'
+            }`}
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-200 ${
+                relayModeValue
+                  ? 'translate-x-5 shadow-[0_1px_2px_rgba(0,0,0,0.35)]'
+                  : 'translate-x-1'
               }`}
+            />
+          </button>
+          {/* Help glyph — themed hover tooltip, not the native browser one. */}
+          <span className="group relative inline-flex items-center">
+            <span
+              aria-label={t('agent.codexRelayHint')}
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyber-elevated font-sans text-xs font-medium leading-none text-cyber-text-secondary cursor-help select-none hover:bg-cyber-accent/15 hover:text-cyber-accent transition-colors"
             >
-              <span
-                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-all duration-200 ${
-                  relayModeValue
-                    ? 'translate-x-5 shadow-[0_1px_2px_rgba(0,0,0,0.35)]'
-                    : 'translate-x-1'
-                }`}
-              />
-            </button>
-            {/* Help glyph — themed hover tooltip, not the native browser one. */}
-            <span className="group relative inline-flex items-center">
-              <span
-                aria-label={t('agent.codexRelayHint')}
-                className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-cyber-elevated font-sans text-xs font-medium leading-none text-cyber-text-secondary cursor-help select-none hover:bg-cyber-accent/15 hover:text-cyber-accent transition-colors"
-              >
-                ?
-              </span>
-              <span
-                role="tooltip"
-                className="pointer-events-none absolute right-0 top-full z-[100] mt-1.5 w-72 rounded border border-cyber-accent/40 bg-cyber-elevated px-3 py-2 text-[11px] leading-relaxed text-cyber-text shadow-cyber-card backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                {/* Caret — rotated square poking up out of the tooltip's top edge,
-                    aligned roughly under the ? glyph at the right side. */}
-                <span
-                  aria-hidden="true"
-                  className="absolute -top-1 right-2 h-2 w-2 rotate-45 border-l border-t border-cyber-accent/40 bg-cyber-elevated"
-                />
-                {t('agent.codexRelayHint')}
-              </span>
+              ?
             </span>
-          </>
-        )}
-      </div>
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute right-0 top-full z-[100] mt-1.5 w-72 rounded border border-cyber-accent/40 bg-cyber-elevated px-3 py-2 text-[11px] leading-relaxed text-cyber-text shadow-cyber-card backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {/* Caret — rotated square poking up out of the tooltip's top edge,
+                  aligned roughly under the ? glyph at the right side. */}
+              <span
+                aria-hidden="true"
+                className="absolute -top-1 right-2 h-2 w-2 rotate-45 border-l border-t border-cyber-accent/40 bg-cyber-elevated"
+              />
+              {t('agent.codexRelayHint')}
+            </span>
+          </span>
+        </div>
+      )}
 
       <div className="flex-1 p-2 overflow-y-auto">
         {selectedToolData ? (
