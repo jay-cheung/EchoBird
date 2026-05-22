@@ -293,19 +293,6 @@
             margin-bottom: 14px;
             flex: 1;
         }
-        .tier-net {
-            font-family: var(--mono);
-            font-size: 10.5px;
-            color: var(--dim);
-            letter-spacing: 0.3px;
-            padding-top: 10px;
-            margin-bottom: 12px;
-            border-top: 1px dashed var(--border);
-        }
-        .tier-net strong {
-            color: var(--text);
-            font-weight: 600;
-        }
         .tier-btn {
             width: 100%;
             padding: 10px 14px;
@@ -498,7 +485,6 @@
                         <div class="tier-name" data-t="coffee_name">COFFEE</div>
                         <div class="tier-amount"><span class="currency">¥</span><span>18</span></div>
                         <div class="tier-desc" data-t="coffee_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                     <div class="tier" data-tier="lunch" data-currency="CNY">
@@ -506,7 +492,6 @@
                         <div class="tier-name" data-t="lunch_name">LUNCH</div>
                         <div class="tier-amount"><span class="currency">¥</span><span>38</span></div>
                         <div class="tier-desc" data-t="lunch_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                     <div class="tier" data-tier="feast" data-currency="CNY">
@@ -514,7 +499,6 @@
                         <div class="tier-name" data-t="feast_name">FEAST</div>
                         <div class="tier-amount"><span class="currency">¥</span><span>88</span></div>
                         <div class="tier-desc" data-t="feast_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                     <!-- 4th card: 微信赞赏码 — minimal: 只剩 QR + 4 字 caption -->
@@ -538,7 +522,6 @@
                         <div class="tier-name" data-t="coffee_name">COFFEE</div>
                         <div class="tier-amount"><span class="currency">$</span><span>3</span></div>
                         <div class="tier-desc" data-t="coffee_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                     <div class="tier" data-tier="lunch" data-currency="USD">
@@ -546,7 +529,6 @@
                         <div class="tier-name" data-t="lunch_name">LUNCH</div>
                         <div class="tier-amount"><span class="currency">$</span><span>7</span></div>
                         <div class="tier-desc" data-t="lunch_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                     <div class="tier" data-tier="feast" data-currency="USD">
@@ -554,7 +536,6 @@
                         <div class="tier-name" data-t="feast_name">FEAST</div>
                         <div class="tier-amount"><span class="currency">$</span><span>15</span></div>
                         <div class="tier-desc" data-t="feast_desc"></div>
-                        <div class="tier-net"></div>
                         <button class="tier-btn"></button>
                     </div>
                 </div>
@@ -604,17 +585,8 @@
                 },
             },
             amounts: {
-                // `net` = approximate amount the dev actually receives after Paddle's
-                // 5% + $0.50 per-transaction fee. Pre-computed at FX ≈ 7 RMB/USD.
-                // Real net may vary ±5% with daily FX; numbers are illustrative.
-                CNY: {
-                    coffee: 18, lunch: 38, feast: 88, symbol: "¥",
-                    net: { coffee: "13.70", lunch: "32.60", feast: "80.10" },
-                },
-                USD: {
-                    coffee: 3, lunch: 7, feast: 15, symbol: "$",
-                    net: { coffee: "1.96", lunch: "6.15", feast: "13.75" },
-                },
+                CNY: { coffee: 18, lunch: 38, feast: 88, symbol: "¥" },
+                USD: { coffee: 3,  lunch: 7,  feast: 15, symbol: "$" },
             },
         };
 
@@ -628,8 +600,7 @@
                 badge: "支持这个项目",
                 h1: '请 EchoBird 团队<span class="gradient">喝杯咖啡</span>',
                 lede: "EchoBird 是一个长期维护的独立项目。如果它帮你节省了时间,或者只是让你的 AI 工作流更顺手,欢迎用一杯咖啡的钱告诉团队:这事值得继续做。",
-                net_label: "作者净收",
-                wechat_caption: "微信扫码",
+                wechat_caption: "微信打赏",
                 warn_strong: "⚠️ 配置未就绪",
                 warn_body: "请在文件顶部的 PADDLE_CONFIG 中填入 Client-side Token 与 Price ID 后再测试。",
                 cny_label: "人民币 · CNY",
@@ -655,8 +626,7 @@
                 badge: "SUPPORT THE PROJECT",
                 h1: 'Buy the dev a <span class="gradient">cup of coffee</span>',
                 lede: "EchoBird is a long-running indie project. If it has saved you time, or just made your AI workflow smoother, a small tip tells the maker this is worth continuing.",
-                net_label: "Net to dev",
-                wechat_caption: "WeChat · CN only",
+                wechat_caption: "WeChat tip · CN only",
                 warn_strong: "⚠️ Configuration incomplete",
                 warn_body: "Set the Client-side Token and Price IDs in PADDLE_CONFIG at the top of this file before testing.",
                 cny_label: "CNY · 人民币",
@@ -711,18 +681,12 @@
                 row.classList.toggle("primary", row.dataset.currency === primaryCurrency);
             });
 
-            // 渲染 6 张 Paddle 卡的按钮文案 + 净收行
+            // 渲染 6 张 Paddle 卡的按钮文案
             document.querySelectorAll(".tier[data-tier]").forEach(card => {
                 const currency = card.dataset.currency;
                 const tier = card.dataset.tier;
                 const amounts = PADDLE_CONFIG.amounts[currency];
-                const amount = amounts[tier];
-                const symbol = amounts.symbol;
-                card.querySelector(".tier-btn").textContent = t.tip_btn(amount, symbol);
-                const netEl = card.querySelector(".tier-net");
-                if (netEl) {
-                    netEl.innerHTML = `${t.net_label} <strong>${symbol}${amounts.net[tier]}</strong>`;
-                }
+                card.querySelector(".tier-btn").textContent = t.tip_btn(amounts[tier], amounts.symbol);
             });
 
             // 微信赞赏卡:EN 模式下灰度 + caption 切到 "WeChat · CN only"
