@@ -534,18 +534,18 @@
         // ║  PADDLE 配置                                                       ║
         // ╚══════════════════════════════════════════════════════════════════╝
         const PADDLE_CONFIG = {
-            environment: "sandbox",
-            clientToken: "test_d3a88702e82f7dbf4d9f3f8d72e",
+            environment: "production",
+            clientToken: "live_a01b045f2acbe410186427d60d4",
             prices: {
                 CNY: {
-                    coffee: "pri_01ks8f29h3qxtb7fkgjhk76jfq",
-                    lunch:  "pri_01ks8f4tzfb3jvmmqzpp8mawvh",
-                    feast:  "pri_01ks8f60hvaqc72hbznkn1pa1k",
+                    coffee: "pri_01ks8pty76vxv9n5tehyaf0mys",
+                    lunch:  "pri_01ks8pvsgtfmg3v6y3nc0v82g4",
+                    feast:  "pri_01ks8pwhzjsqsmkkfgkfvgexpc",
                 },
                 USD: {
-                    coffee: "pri_01ks8gh1qzt4t1v8agb0ryhjm0",
-                    lunch:  "pri_01ks8gk7pzjdnga4mhvs1wg46f",
-                    feast:  "pri_01ks8gm339yqcyrn3vach9m24r",
+                    coffee: "pri_01ks8pxbms54117rkxdqzt112k",
+                    lunch:  "pri_01ks8pyatktyfr7yc4j6qsnbnz",
+                    feast:  "pri_01ks8pyxaf1nxtgtr2s6z12mn6",
                 },
             },
             amounts: {
@@ -710,6 +710,9 @@
         $envTag.textContent = PADDLE_CONFIG.environment;
         if (PADDLE_CONFIG.environment === "production") {
             $envTag.classList.add("live");
+            // Debug log is for dev/testing — hide entirely from real users.
+            const debugPanel = document.querySelector(".debug");
+            if (debugPanel) debugPanel.style.display = "none";
         }
 
         if (!configReady) {
