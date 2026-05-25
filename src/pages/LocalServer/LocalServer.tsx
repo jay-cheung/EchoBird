@@ -20,6 +20,7 @@ import { useDownload } from '../../components/DownloadContext';
 import * as api from '../../api/tauri';
 import type { SystemInfo } from '../../api/tauri';
 import type { StoreModel } from '../../api/types';
+import { useNavigationStore } from '../../stores/navigationStore';
 import { LocalServerContext, useLocalServer } from './context';
 import type { EngineStatus, GgufFileEntry } from './context';
 
@@ -164,8 +165,13 @@ export const LocalServerMain: React.FC = () => {
 
   // Runtime options: vLLM / SGLang only on Linux
   const isLinux = systemInfo ? systemInfo.os === 'linux' : navigator.platform.startsWith('Linux');
+  const isWindows = systemInfo?.os === 'windows';
   // Only NVIDIA GPUs can use GPU-Full mode (app downloads CUDA build for NVIDIA, AVX2 CPU build for others)
   const hasNvidiaGpu = systemInfo ? systemInfo.hasNvidiaGpu : false;
+
+  // Hand off to Mother Agent ("安装与修复" page) with a pre-filled trigger phrase.
+  // Used by the CUDA detect/install helper pills below.
+  const goToMother = useNavigationStore((s) => s.goToMother);
   const hasAmdGpu = systemInfo ? ((systemInfo as any).hasAmdGpu ?? false) : false;
   const runtimeOptions = [
     // Linux + GPU: vLLM / SGLang first (recommended for Linux). llama.cpp last.
@@ -695,6 +701,23 @@ export const LocalServerMain: React.FC = () => {
                 </div>
                 <div className="w-full max-w-3xl px-4">
                   <div className="rounded-lg border border-cyber-border/60 bg-cyber-bg-secondary/40 p-5 shadow-sm">
+                    {/* CUDA helpers — Windows only (macOS has no CUDA; Linux users handle their own toolkit) */}
+                    {isWindows && (
+                      <div className="flex flex-wrap gap-2 justify-center pb-4 mb-5 border-b border-cyber-border/40">
+                        <button
+                          onClick={() => goToMother(t('mother.hintDetectCuda'))}
+                          className="px-3 py-1.5 text-xs rounded-full bg-cyber-surface border border-cyber-border text-cyber-text-secondary hover:bg-cyber-elevated hover:text-cyber-text hover:border-cyber-text-muted/50 transition-colors cursor-pointer"
+                        >
+                          {t('mother.hintDetectCuda')}
+                        </button>
+                        <button
+                          onClick={() => goToMother(t('mother.hintInstallCuda'))}
+                          className="px-3 py-1.5 text-xs rounded-full bg-cyber-surface border border-cyber-border text-cyber-text-secondary hover:bg-cyber-elevated hover:text-cyber-text hover:border-cyber-text-muted/50 transition-colors cursor-pointer"
+                        >
+                          {t('mother.hintInstallCuda')}
+                        </button>
+                      </div>
+                    )}
                     <table className="w-full text-sm border-collapse font-sans">
                       <thead>
                         <tr className="text-cyber-text-secondary">

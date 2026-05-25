@@ -250,6 +250,8 @@ const ja: Partial<Translations> = {
   'mother.hintUninstall': '{agent} を完全にアンインストール',
   'mother.hintNetworkInfo': '内部 / 外部 IP を確認',
   'mother.hintSecurityAudit': '不審なアクティビティを検出',
+  'mother.hintDetectCuda': 'CUDA モジュールの状態を確認',
+  'mother.hintInstallCuda': 'CUDA モジュールのインストールを支援',
   'mother.parasiteTipInstalled':
     'AI アシスタントです。短い記憶と確かなインストール能力で、AI の世界へのスタートをお手伝いします。Claude Code にモデルを設定済みであれば、右側で選択すると会話を続けられます。',
   'mother.parasiteTipNotInstalled':

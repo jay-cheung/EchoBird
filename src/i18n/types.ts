@@ -215,6 +215,8 @@ export type TKey =
   | 'mother.hintUninstall'
   | 'mother.hintNetworkInfo'
   | 'mother.hintSecurityAudit'
+  | 'mother.hintDetectCuda'
+  | 'mother.hintInstallCuda'
   | 'mother.enterMessage'
   | 'mother.servers'
   | 'mother.sshGuide'

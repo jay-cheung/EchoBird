@@ -276,6 +276,8 @@ const en: Translations = {
   'mother.hintUninstall': 'Completely uninstall {agent}',
   'mother.hintNetworkInfo': 'Show internal/public IP',
   'mother.hintSecurityAudit': 'Detect suspicious activity',
+  'mother.hintDetectCuda': 'Detect CUDA module status',
+  'mother.hintInstallCuda': 'Help me install CUDA modules',
   'mother.parasiteTipInstalled':
     "I'm an AI assistant — short memory, sharp install skills, here to launch you into AI. Once your Claude Code is configured with a model, pick it on the right to keep talking here.",
   'mother.parasiteTipNotInstalled':

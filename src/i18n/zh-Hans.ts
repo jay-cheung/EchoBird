@@ -243,6 +243,8 @@ const zhHans: Partial<Translations> = {
   'mother.hintUninstall': '完全卸载 {agent}',
   'mother.hintNetworkInfo': '查看内网/公网IP',
   'mother.hintSecurityAudit': '检测可疑活动',
+  'mother.hintDetectCuda': '检测CUDA模块状态',
+  'mother.hintInstallCuda': '帮我安装CUDA模块',
   'mother.parasiteTipInstalled':
     '我是 AI 助手，只有短暂的记忆和娴熟的安装能力，助你在 AI 领域启航。如果你的 Claude Code 配好了模型，在右侧选择它继续和你对话。',
   'mother.parasiteTipNotInstalled':

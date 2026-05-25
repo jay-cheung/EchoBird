@@ -245,6 +245,8 @@ const zhHant: Partial<Translations> = {
   'mother.hintUninstall': '完全解除安裝 {agent}',
   'mother.hintNetworkInfo': '查看內網/公網 IP',
   'mother.hintSecurityAudit': '偵測可疑活動',
+  'mother.hintDetectCuda': '檢測 CUDA 模組狀態',
+  'mother.hintInstallCuda': '幫我安裝 CUDA 模組',
   'mother.parasiteTipInstalled':
     '我是 AI 助手，只有短暫的記憶和嫻熟的安裝能力，助你在 AI 領域啟航。如果你的 Claude Code 配好了模型，在右側選擇它繼續和你對話。',
   'mother.parasiteTipNotInstalled':
