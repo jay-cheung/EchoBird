@@ -30,11 +30,9 @@ const zhHant: Partial<Translations> = {
   'myProjects.placeholder.name': '例如:我的專案',
   'myProjects.pickFile': '(點擊選擇)',
   'myProjects.copyTemplate': '複製 Reversi 範本到剪貼簿',
-  'myProjects.templateCopied': '範本已複製,貼到你專案的 models.json',
+  'myProjects.templateCopied': '範本已複製，貼到你專案的 models.json',
   'myProjects.deleteTitle': '從列表移除',
-  'myProjects.deleteConfirm': '僅從「我的AI項目」列表移除該項目,本機上的項目檔案不會被刪除。',
-  'myProjects.bottomHint':
-    '給你 Vibe Coding 的應用或遊戲切換模型，參考黑白棋和 AI 翻譯的 models.json 或複製它到你的項目。',
+  'myProjects.deleteConfirm': '僅從「我的AI項目」列表移除該項目，本機上的項目檔案不會被刪除。',
   'page.localServer': '本地大模型',
   'page.motherAgent': '安裝與修復',
   'page.feedback': '問題回報',
@@ -83,6 +81,7 @@ const zhHant: Partial<Translations> = {
   'btn.save': '儲存',
   'btn.close': '關閉',
   'btn.refresh': '重新整理',
+  'btn.clear': '清理',
   'btn.cancel': '取消',
   'btn.delete': '刪除',
   'btn.edit': '編輯',
@@ -184,7 +183,7 @@ const zhHant: Partial<Translations> = {
   'hint.devInvite':
     '切換 Codex 桌面端 / Codex CLI / Claude 桌面端 的模型後，請保持 EchoBird 執行。',
   'hint.myProjects':
-    '給你 Vibe Coding 的應用或遊戲切換模型,參考黑白棋和AI翻譯的 models.json 或複製它到你的專案。',
+    '給你 Vibe Coding 的應用或遊戲切換模型，參考黑白棋和 AI 翻譯的 models.json 或複製它到你的專案。',
   'mother.selectModel': '選擇模型',
   'mother.hintInstall': '安裝 {agent}',
   'mother.enterMessage': '輸入訊息...',

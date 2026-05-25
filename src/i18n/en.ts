@@ -35,8 +35,6 @@ const en: Translations = {
   'myProjects.deleteTitle': 'Remove from list',
   'myProjects.deleteConfirm':
     'Removes this entry from your "My AI Projects" list only — the project files on your machine stay where they are.',
-  'myProjects.bottomHint':
-    'Switch models for your own vibe-coded apps and games — use the Reversi / Translator models.json as a reference, or copy it into your project.',
   'page.localServer': 'LOCAL LLM',
   'page.motherAgent': 'INSTALL & REPAIR',
   'page.feedback': 'FEEDBACK',
@@ -92,6 +90,7 @@ const en: Translations = {
   'btn.save': 'Save',
   'btn.close': 'Close',
   'btn.refresh': 'REFRESH',
+  'btn.clear': 'CLEAR',
   'btn.cancel': 'CANCEL',
   'btn.delete': 'DELETE',
   'btn.edit': 'EDIT',

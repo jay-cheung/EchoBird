@@ -266,14 +266,15 @@ function App() {
                                     </span>
 
                                     {is('mother') && (
-                                      <div className="flex-shrink-0 flex items-center gap-2">
+                                      <div className="ml-auto flex-shrink-0 flex items-center gap-2">
                                         <button
                                           onClick={() =>
                                             window.dispatchEvent(new CustomEvent('clear-chat'))
                                           }
-                                          className="p-1.5 rounded-lg text-cyber-text/40 hover:text-cyber-text hover:bg-cyber-text/10 transition-colors"
+                                          className="text-sm px-3 py-1.5 border border-cyber-border/50 rounded-md text-cyber-text hover:bg-cyber-text/10 transition-colors flex items-center gap-2"
                                         >
-                                          <RotateCcw size={14} />
+                                          <RotateCcw size={13} />
+                                          {t('btn.clear')}
                                         </button>
                                       </div>
                                     )}

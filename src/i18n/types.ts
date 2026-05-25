@@ -77,7 +77,6 @@ export type TKey =
   | 'myProjects.templateCopied'
   | 'myProjects.deleteTitle'
   | 'myProjects.deleteConfirm'
-  | 'myProjects.bottomHint'
   | 'hint.myProjects'
   | 'settings.closeWindowBehavior'
   | 'settings.closeDirectly'
@@ -89,6 +88,7 @@ export type TKey =
   // Buttons
   | 'btn.addModel'
   | 'btn.refresh'
+  | 'btn.clear'
   | 'btn.cancel'
   | 'btn.delete'
   | 'btn.edit'
