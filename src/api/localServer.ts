@@ -105,8 +105,48 @@ export async function getLocalEngineStatus(runtime?: string): Promise<LocalEngin
   return invoke('get_local_engine_status', { runtime: runtime ?? null });
 }
 
-export async function installLocalEngine(runtime: string): Promise<void> {
-  return invoke('install_local_engine', { runtime });
+export interface InstallEngineOverrides {
+  /** Specific release tag to install, e.g. "b9100". Auto-latest when omitted. */
+  version?: string;
+  /** CUDA major.minor for the picked Windows build, e.g. "12.6". */
+  cudaVersion?: string;
+}
+
+export async function installLocalEngine(
+  runtime: string,
+  overrides?: InstallEngineOverrides
+): Promise<void> {
+  return invoke('install_local_engine', {
+    runtime,
+    version: overrides?.version ?? null,
+    cudaVersion: overrides?.cudaVersion ?? null,
+  });
+}
+
+export interface LlamaReleaseOption {
+  /** Release tag, e.g. "b9100". */
+  tag: string;
+  /** CUDA major.minor parsed from the asset name, e.g. "12.6". */
+  cudaVersion: string;
+  /** Original asset filename — for display / debug only. */
+  assetName: string;
+  /** Asset size in bytes. */
+  sizeBytes: number;
+}
+
+/**
+ * Fetch top N most recent llama.cpp releases, flattened to one entry
+ * per Windows CUDA variant. Empty array on network failure — caller
+ * should fall back to auto-latest install.
+ */
+export async function listEngineReleaseOptions(
+  runtime: string,
+  topN?: number
+): Promise<LlamaReleaseOption[]> {
+  return invoke('list_engine_release_options', {
+    runtime,
+    topN: topN ?? null,
+  });
 }
 
 export async function pauseDownload(): Promise<void> {

@@ -215,6 +215,13 @@ export const LocalServerMain: React.FC = () => {
   const [engineBinaryNames, setEngineBinaryNames] = useState<string[]>([]);
   const [engineVersion, setEngineVersion] = useState<string>('');
 
+  // Engine version picker (Windows + NVIDIA + llama-server only).
+  // macOS/Linux + non-NVIDIA stay on the original auto-latest install
+  // path; their llama.cpp builds aren't CUDA-variant-keyed anyway.
+  const showVersionPicker = isWindows && hasNvidiaGpu && runtime === 'llama-server';
+  const [engineOptions, setEngineOptions] = useState<api.LlamaReleaseOption[]>([]);
+  const [selectedEngineId, setSelectedEngineId] = useState<string>('');
+
   // Get engine download progress from global DownloadContext (single source of truth)
   // Key: use runtime name so progress matches the current engine being installed
   const { downloads } = useDownload();
@@ -261,6 +268,38 @@ export const LocalServerMain: React.FC = () => {
     check();
   }, [runtime]);
 
+  // Fetch the version picker options (Windows + NVIDIA only). Top 10
+  // releases × CUDA variants. Empty result → degrade to single-button
+  // auto-latest install (the picker just hides).
+  useEffect(() => {
+    if (!showVersionPicker) {
+      setEngineOptions([]);
+      setSelectedEngineId('');
+      return;
+    }
+    let cancelled = false;
+    api
+      .listEngineReleaseOptions(runtime, 10)
+      .then((opts) => {
+        if (cancelled) return;
+        setEngineOptions(opts);
+        if (opts.length > 0) {
+          // Default to the latest release + highest CUDA variant.
+          // Upstream lists releases newest-first; per release, the
+          // higher CUDA variant tends to appear first too, so the
+          // first entry is the best default.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSelectedEngineId(`${opts[0].tag}::${opts[0].cudaVersion}`);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setEngineOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showVersionPicker, runtime]);
+
   // Sync engineStatus from DownloadContext
   useEffect(() => {
     if (!engineDl) return;
@@ -279,11 +318,22 @@ export const LocalServerMain: React.FC = () => {
     }
   }, [engineDl?.status]);
 
-  // Install engine handler — routes by runtime
+  // Install engine handler — routes by runtime. When the version
+  // picker is active and the user has a selection, pass the explicit
+  // (tag, cudaVersion) overrides so install bypasses auto-latest and
+  // pins the user's pick.
   const handleDownloadEngine = async () => {
     setEngineStatus('downloading');
     try {
-      await api.installLocalEngine(runtime);
+      if (showVersionPicker && selectedEngineId) {
+        const [pickedTag, pickedCuda] = selectedEngineId.split('::');
+        await api.installLocalEngine(runtime, {
+          version: pickedTag,
+          cudaVersion: pickedCuda,
+        });
+      } else {
+        await api.installLocalEngine(runtime);
+      }
       setEngineStatus('ready');
     } catch (err: any) {
       setEngineStatus('error');
@@ -425,20 +475,50 @@ export const LocalServerMain: React.FC = () => {
       </button>
     );
 
-    // Engine not installed: show SETUP ENGINE button
+    // Engine not installed: show SETUP ENGINE button.
+    // Windows + NVIDIA + llama-server: show version picker beside it.
     if (engineStatus === 'not-installed' || engineStatus === 'error') {
+      const pickerActive = showVersionPicker && engineOptions.length > 0;
+      const engineSelectOptions = engineOptions.map((opt) => ({
+        id: `${opt.tag}::${opt.cudaVersion}`,
+        label: `${opt.tag} \u00B7 CUDA ${opt.cudaVersion}`,
+      }));
       return (
         <div className="flex gap-1.5 w-full">
-          <button
-            onClick={handleDownloadEngine}
-            className="flex-1 py-3 font-bold text-base tracking-[0.3em] font-mono transition-all flex items-center justify-center gap-2 rounded-lg
-                            bg-cyber-accent text-white border border-cyber-accent hover:bg-cyber-accent-secondary hover:border-cyber-accent-secondary shadow-lg shadow-cyber-accent/30"
-          >
-            <Download className="w-4 h-4" />
-            {engineStatus === 'error'
-              ? `\u26A0 ${t('server.setupEngine')}`
-              : t('server.setupEngine')}
-          </button>
+          {pickerActive ? (
+            <div className="flex-1 flex gap-1.5">
+              <div className="flex-1">
+                <MiniSelect
+                  value={selectedEngineId}
+                  onChange={setSelectedEngineId}
+                  options={engineSelectOptions}
+                  className="h-full"
+                  dropUp
+                />
+              </div>
+              <button
+                onClick={handleDownloadEngine}
+                className="px-5 py-3 font-bold text-base tracking-[0.2em] font-mono transition-all flex items-center justify-center gap-2 rounded-lg
+                              bg-cyber-accent text-white border border-cyber-accent hover:bg-cyber-accent-secondary hover:border-cyber-accent-secondary shadow-lg shadow-cyber-accent/30"
+              >
+                <Download className="w-4 h-4" />
+                {engineStatus === 'error'
+                  ? `\u26A0 ${t('server.setupEngine')}`
+                  : t('server.setupEngine')}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleDownloadEngine}
+              className="flex-1 py-3 font-bold text-base tracking-[0.3em] font-mono transition-all flex items-center justify-center gap-2 rounded-lg
+                              bg-cyber-accent text-white border border-cyber-accent hover:bg-cyber-accent-secondary hover:border-cyber-accent-secondary shadow-lg shadow-cyber-accent/30"
+            >
+              <Download className="w-4 h-4" />
+              {engineStatus === 'error'
+                ? `\u26A0 ${t('server.setupEngine')}`
+                : t('server.setupEngine')}
+            </button>
+          )}
           {folderBtn}
           {startStopBtn}
         </div>
