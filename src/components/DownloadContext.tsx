@@ -111,12 +111,17 @@ export const DownloadProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   }, []);
 
-  // Trigger download (also used for resuming after pause). The first entry in
-  // `files` is the variant's primary key — it must match what the backend
-  // emits in DownloadProgressEvent.fileName so Map<fileName, …> lookups line up.
+  // Trigger download (also used for resuming after pause). The Map key must
+  // match what the backend emits in DownloadProgressEvent.fileName — the
+  // backend reports against the *basename* of files[0] (HF paths like
+  // "UD-IQ2_M/foo-00001-of-00003.gguf" are flattened on save), so the UI
+  // placeholder must use the same basename or progress events land in a
+  // separate entry and the 0%-downloading row never updates.
   const startDownload = useCallback(async (repo: string, files: string[]) => {
     if (!files.length) return;
-    const primary = files[0];
+    const head = files[0];
+    const slash = head.lastIndexOf('/');
+    const primary = slash === -1 ? head : head.slice(slash + 1);
     // Immediately show downloading state
     setDownloads((prev) => {
       const next = new Map(prev);
