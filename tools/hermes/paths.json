@@ -1,6 +1,9 @@
 {
-    "name": "Hermes Agent",
-    "category": "Agents",
+    "name": "Hermes Desktop",
+    "names": {
+        "zh-Hans": "Hermes 桌面端"
+    },
+    "category": "Desktop",
     "apiProtocol": [
         "openai"
     ],
