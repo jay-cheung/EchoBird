@@ -416,7 +416,7 @@ function RoutingToggle({ label, hint, checked, onChange, copyCommand }: RoutingT
     () => () => {
       if (closeTimer.current) clearTimeout(closeTimer.current);
     },
-    [],
+    []
   );
 
   const showTip = () => {
