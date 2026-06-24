@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Server as ServerIcon, Box as BoxIcon, Copy, Check, RefreshCw, Settings } from 'lucide-react';
+import {
+  Server as ServerIcon,
+  Box as BoxIcon,
+  Copy,
+  Check,
+  RefreshCw,
+  Settings,
+} from 'lucide-react';
 import { ToolCard, getModelIcon } from '../../components';
 import { useI18n } from '../../hooks/useI18n';
 import * as api from '../../api/tauri';
