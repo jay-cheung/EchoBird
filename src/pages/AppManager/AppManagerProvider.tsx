@@ -122,33 +122,20 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     setAgreedConfigPolicyRaw(v);
     writeBool('echobird_appmgr_apply_config', v);
   };
-  // Codex-only routing toggle. When ON, apply_codex writes the real
-  // upstream URL + api key to ~/.codex/* instead of the 127.0.0.1
-  // proxy URL — Codex talks to relay stations (cc-vibe.com etc.)
-  // directly. Default OFF: legacy behavior, proxy in the path.
-  // Both Codex CLI and Codex Desktop share ~/.codex/config.toml, so
-  // this is a single flag for the whole Codex family, not per-app.
-  const [codexRelayMode, setCodexRelayModeRaw] = useState<boolean>(() =>
-    readBool('echobird_codex_relay_mode', false)
-  );
-  // Claude Desktop routing toggle. When ON, apply_claudedesktop writes
+  // Claude Desktop's own routing toggle. When ON, apply_claudedesktop writes
   // the real upstream URL + api key into the Desktop profile JSON so
   // Desktop's gateway talks straight to the relay station. Default OFF:
   // Desktop talks to our anthropic_proxy which does model-id rewrite
-  // and protocol translation. Kept separate from codexRelayMode so a
-  // user with a cc-vibe-only relay for Codex but a local-vllm for Claude
-  // (or vice versa) can mix the two independently.
+  // and protocol translation.
   const [claudeDesktopRelayMode, setClaudeDesktopRelayModeRaw] = useState<boolean>(() =>
     readBool('echobird_claudedesktop_relay_mode', false)
   );
-  // Codex-only "Responses passthrough" toggle. Mutually exclusive with
-  // codexRelayMode — the App Manager enforces at-most-one-on via auto-flip
-  // in the setters; both-off is the default (legacy Bridge translation).
-  // When ON, config.toml still points at the 127.0.0.1 proxy (so model-id
-  // rewrite keeps happening), but the proxy forwards to the upstream's
-  // native /responses endpoint verbatim instead of translating down to
-  // Chat. For third-party models that natively speak Responses. Shared
-  // across Codex CLI + Codex Desktop, same as codexRelayMode.
+  // Codex-only "Responses passthrough" toggle. Default OFF (legacy Bridge
+  // translation). When ON, config.toml still points at the 127.0.0.1 proxy (so
+  // model-id rewrite keeps happening), but the proxy forwards to the upstream's
+  // native /responses endpoint verbatim instead of translating down to Chat.
+  // For third-party models that natively speak Responses. Shared across Codex
+  // CLI + Codex Desktop (both read ~/.codex/config.toml).
   const [codexResponsesPassthrough, setCodexResponsesPassthroughRaw] = useState<boolean>(() =>
     readBool('echobird_codex_responses_passthrough', false)
   );
@@ -185,8 +172,8 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
   const selectedToolData = detectedTools.find((t) => t.id === selectedTool);
 
   // Apply model config to backend (internalized from App.tsx).
-  // `relayOverride` lets callers (most importantly setCodexRelayMode)
-  // bypass the captured codexRelayMode value when re-applying after
+  // `relayOverride` lets callers (most importantly setClaudeDesktopRelayMode)
+  // bypass the captured claudeDesktopRelayMode value when re-applying after
   // a toggle flip — React would otherwise stale-close on the old value.
   const applyModelConfig = async (
     toolId: string,
@@ -265,68 +252,21 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     }
   };
 
-  // Relay-mode setter: flipping the toggle while a Codex app already
-  // has an active model needs to rewrite ~/.codex/config.toml + auth.json
-  // with the new shape immediately. Otherwise the user sees no effect
-  // until the next launch. Fire-and-forget: errors surface via the
-  // existing applyError modal on the next launch click.
-  const setCodexRelayMode = useCallback(
-    (v: boolean) => {
-      setCodexRelayModeRaw(v);
-      writeBool('echobird_codex_relay_mode', v);
-      // Mutual exclusion: turning API Router ON forces Responses
-      // passthrough OFF (both-on is meaningless — relay bypasses the very
-      // proxy that passthrough operates on). Both-off stays allowed.
-      if (v) {
-        setCodexResponsesPassthroughRaw(false);
-        writeBool('echobird_codex_responses_passthrough', false);
-      }
-      const codexToolId = (['codex', 'codexdesktop'] as const).find((id) => !!toolModelConfig[id]);
-      if (!codexToolId) return;
-      const pendingInternalId = toolModelConfig[codexToolId];
-      if (!pendingInternalId || isOfficialModelSentinel(pendingInternalId)) return;
-      // passthroughOverride=false when we just auto-flipped it off, so the
-      // re-apply doesn't read a stale (pre-flip) captured passthrough value.
-      void applyModelConfig(codexToolId, pendingInternalId, v, v ? false : undefined).then(
-        (result) => {
-          if (result !== true) {
-            setApplyError(typeof result === 'string' ? result : t('key.destroyed'));
-          }
-        }
-      );
-    },
-    // Re-bind whenever the currently-selected model can change.
-    // applyModelConfig itself is recreated on every render, so we
-    // exclude it from deps to avoid an effect storm — the closure
-    // captures the latest values either way via the relayOverride arg.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [toolModelConfig, t, userModels]
-  );
-
-  // Responses-passthrough setter — mirrors setCodexRelayMode (shared across
+  // Responses-passthrough setter — mirrors setCodexWebSearch (shared across
   // Codex CLI + Desktop, re-applies on flip so the effect is immediate).
-  // Mutually exclusive with relay mode: turning this ON forces API Router OFF.
   const setCodexResponsesPassthrough = useCallback(
     (v: boolean) => {
       setCodexResponsesPassthroughRaw(v);
       writeBool('echobird_codex_responses_passthrough', v);
-      if (v) {
-        setCodexRelayModeRaw(false);
-        writeBool('echobird_codex_relay_mode', false);
-      }
       const codexToolId = (['codex', 'codexdesktop'] as const).find((id) => !!toolModelConfig[id]);
       if (!codexToolId) return;
       const pendingInternalId = toolModelConfig[codexToolId];
       if (!pendingInternalId || isOfficialModelSentinel(pendingInternalId)) return;
-      // relayOverride=false when passthrough goes ON (we auto-flipped relay
-      // off above), so the re-apply doesn't read a stale captured relay value.
-      void applyModelConfig(codexToolId, pendingInternalId, v ? false : undefined, v).then(
-        (result) => {
-          if (result !== true) {
-            setApplyError(typeof result === 'string' ? result : t('key.destroyed'));
-          }
+      void applyModelConfig(codexToolId, pendingInternalId, undefined, v).then((result) => {
+        if (result !== true) {
+          setApplyError(typeof result === 'string' ? result : t('key.destroyed'));
         }
-      );
+      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [toolModelConfig, t, userModels]
@@ -359,7 +299,7 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     [toolModelConfig, t, userModels]
   );
 
-  // Claude Desktop relay-mode setter — mirrors setCodexRelayMode but
+  // Claude Desktop relay-mode setter — mirrors the Codex toggle setters but
   // scoped to the claudedesktop tool. Re-applies on toggle flip so the
   // user sees an immediate effect (profile JSON gets rewritten with the
   // new gateway URL + key on the next /v1/messages request, no Desktop
@@ -541,8 +481,6 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         userModels,
         modelProtocolSelection,
         setModelProtocolSelection,
-        codexRelayMode,
-        setCodexRelayMode,
         codexResponsesPassthrough,
         setCodexResponsesPassthrough,
         codexWebSearch,
