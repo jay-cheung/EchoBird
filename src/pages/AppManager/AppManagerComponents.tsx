@@ -557,10 +557,10 @@ export const AppManagerPanel: React.FC = () => {
     handleSelectModel,
     modelProtocolSelection,
     setModelProtocolSelection,
-    codexRelayMode,
-    setCodexRelayMode,
     codexResponsesPassthrough,
     setCodexResponsesPassthrough,
+    codexWebSearch,
+    setCodexWebSearch,
     claudeDesktopRelayMode,
     setClaudeDesktopRelayMode,
     claude1mMode,
@@ -580,10 +580,11 @@ export const AppManagerPanel: React.FC = () => {
   // provider's setters auto-flip so at most one is ever on.
   const isCodexApp = selectedTool === 'codex' || selectedTool === 'codexdesktop';
   const isClaudeDesktopApp = selectedTool === 'claudedesktop';
-  const showRelayToggle = isCodexApp || isClaudeDesktopApp;
+  const showRelayToggle = isClaudeDesktopApp;
+  const showWebSearchToggle = isCodexApp;
   const showResponsesToggle = isCodexApp;
-  const relayModeValue = isClaudeDesktopApp ? claudeDesktopRelayMode : codexRelayMode;
-  const setRelayModeValue = isClaudeDesktopApp ? setClaudeDesktopRelayMode : setCodexRelayMode;
+  const relayModeValue = claudeDesktopRelayMode;
+  const setRelayModeValue = setClaudeDesktopRelayMode;
   // 1M-context toggle: Claude Desktop + Claude Code.
   const show1mToggle = isClaudeDesktopApp || selectedTool === 'claudecode';
 
@@ -608,7 +609,7 @@ export const AppManagerPanel: React.FC = () => {
           (which would otherwise cross-wire to Codex's relay flag). For apps
           with no toggles nothing renders and the model list below claims the
           space — the user preferred no reserved gap when toggles are absent. */}
-      {(showRelayToggle || show1mToggle) && (
+      {(showResponsesToggle || showWebSearchToggle || showRelayToggle || show1mToggle) && (
         <div className="px-3 h-9 flex items-center gap-2">
           {showResponsesToggle && (
             <RoutingToggle
@@ -617,6 +618,15 @@ export const AppManagerPanel: React.FC = () => {
               hint={t('agent.codexResponsesHint')}
               checked={codexResponsesPassthrough}
               onChange={setCodexResponsesPassthrough}
+            />
+          )}
+          {showWebSearchToggle && (
+            <RoutingToggle
+              key="websearch"
+              label={t('agent.codexWebSearchLabel')}
+              hint={t('agent.codexWebSearchHint')}
+              checked={codexWebSearch}
+              onChange={setCodexWebSearch}
             />
           )}
           {show1mToggle && (

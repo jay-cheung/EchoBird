@@ -152,6 +152,11 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
   const [codexResponsesPassthrough, setCodexResponsesPassthroughRaw] = useState<boolean>(() =>
     readBool('echobird_codex_responses_passthrough', false)
   );
+  // Codex-only web-search toggle. Default ON (Codex's "cached"); OFF writes
+  // web_search="disabled" so Codex won't offer its built-in search tool.
+  const [codexWebSearch, setCodexWebSearchRaw] = useState<boolean>(() =>
+    readBool('echobird_codex_web_search', true)
+  );
   // Claude 1M-context toggle (Claude Desktop; Claude Code in a later step).
   // When on, the applied profile advertises the `[1m]` model variant so Claude
   // budgets the 1M window. Persisted per-machine; default off.
@@ -188,7 +193,8 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     internalId: string,
     relayOverride?: boolean,
     passthroughOverride?: boolean,
-    oneMOverride?: boolean
+    oneMOverride?: boolean,
+    webSearchOverride?: boolean
   ): Promise<true | string | false> => {
     const model = userModels.find((m) => m.internalId === internalId);
     if (!model) {
@@ -218,14 +224,11 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     const isCodexApp = toolId === 'codex' || toolId === 'codexdesktop';
     const isClaudeDesktopApp = toolId === 'claudedesktop';
     const isClaudeApp = isClaudeDesktopApp || toolId === 'claudecode';
-    const isRelayCapableApp = isCodexApp || isClaudeDesktopApp;
-    const currentRelayMode = isClaudeDesktopApp ? claudeDesktopRelayMode : codexRelayMode;
-    const effectiveRelay = relayOverride ?? currentRelayMode;
-    // Responses passthrough is Codex-only and mutually exclusive with relay
-    // mode. The `!effectiveRelay` guard makes the two impossible to send to
-    // the backend as both-true even if a caller passes an inconsistent pair.
-    const effectivePassthrough =
-      isCodexApp && !effectiveRelay && (passthroughOverride ?? codexResponsesPassthrough);
+    // Codex no longer exposes API Router — relay is Claude-Desktop-only now.
+    const isRelayCapableApp = isClaudeDesktopApp;
+    const effectiveRelay = isClaudeDesktopApp ? (relayOverride ?? claudeDesktopRelayMode) : false;
+    const effectivePassthrough = isCodexApp && (passthroughOverride ?? codexResponsesPassthrough);
+    const effectiveWebSearch = isCodexApp ? (webSearchOverride ?? codexWebSearch) : false;
     // 1M context — Claude Desktop + Claude Code (both honor the [1m] variant).
     const effective1m = isClaudeApp && (oneMOverride ?? claude1mMode);
 
@@ -238,7 +241,9 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         model: model.modelId || '',
         protocol: selectedProtocol,
         ...(isRelayCapableApp ? { relayMode: effectiveRelay } : {}),
-        ...(isCodexApp ? { responsesPassthrough: effectivePassthrough } : {}),
+        ...(isCodexApp
+          ? { responsesPassthrough: effectivePassthrough, webSearch: effectiveWebSearch }
+          : {}),
         ...(isClaudeApp ? { oneMContext: effective1m } : {}),
       });
 
@@ -322,6 +327,33 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
           }
         }
       );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [toolModelConfig, t, userModels]
+  );
+
+  // Web-search setter — mirrors setCodexResponsesPassthrough: persist + re-apply
+  // the active Codex model so the change lands immediately.
+  const setCodexWebSearch = useCallback(
+    (v: boolean) => {
+      setCodexWebSearchRaw(v);
+      writeBool('echobird_codex_web_search', v);
+      const codexToolId = (['codex', 'codexdesktop'] as const).find((id) => !!toolModelConfig[id]);
+      if (!codexToolId) return;
+      const pendingInternalId = toolModelConfig[codexToolId];
+      if (!pendingInternalId || isOfficialModelSentinel(pendingInternalId)) return;
+      void applyModelConfig(
+        codexToolId,
+        pendingInternalId,
+        undefined,
+        undefined,
+        undefined,
+        v
+      ).then((result) => {
+        if (result !== true) {
+          setApplyError(typeof result === 'string' ? result : t('key.destroyed'));
+        }
+      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [toolModelConfig, t, userModels]
@@ -513,6 +545,8 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         setCodexRelayMode,
         codexResponsesPassthrough,
         setCodexResponsesPassthrough,
+        codexWebSearch,
+        setCodexWebSearch,
         claudeDesktopRelayMode,
         setClaudeDesktopRelayMode,
         claude1mMode,

@@ -39,6 +39,10 @@ export interface AppManagerContextType {
    *  codexRelayMode — the App Manager auto-flips so at most one is on. */
   codexResponsesPassthrough: boolean;
   setCodexResponsesPassthrough: (v: boolean) => void;
+  /** Codex-only web-search toggle. OFF ⇒ apply writes web_search="disabled" so
+   *  Codex won't offer its built-in search tool; default ON (Codex "cached"). */
+  codexWebSearch: boolean;
+  setCodexWebSearch: (v: boolean) => void;
   /** Claude Desktop routing toggle. Kept separate from Codex because the
    *  two apps target different protocols / different relay-station compat. */
   claudeDesktopRelayMode: boolean;
