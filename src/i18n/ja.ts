@@ -184,7 +184,7 @@ const ja: Partial<Translations> = {
   'agent.modelsTab': 'モデル',
   'agent.codexRelayLabel': 'API Router',
   'agent.codexRelayHint':
-    'API 中継または API Router が提供するデータ転送方式。サードパーティモデル(DeepSeek / Qwen など)では有効にしないでください!',
+    'API 中継または API Router が提供するデータ転送方式。サードパーティモデルで有効にするとフル接続になりますが、一部の機能がツール内部で制限される可能性があります。',
   'agent.codexResponsesLabel': 'Responses',
   'agent.codexResponsesHint':
     'サードパーティモデルが Responses に対応していれば、有効化してネイティブに接続できます。（購入したモデルの公式ドキュメントをよく読み、Responses プロトコルに対応しているか確認してください。）',

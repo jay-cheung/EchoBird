@@ -181,7 +181,7 @@ const en: Translations = {
   'agent.modelsTab': 'MODELS',
   'agent.codexRelayLabel': 'API Router',
   'agent.codexRelayHint':
-    'A data-forwarding scheme provided by an API relay or API Router. Do not enable this when using third-party models (e.g. DeepSeek / Qwen)!',
+    'A data-forwarding scheme provided by an API relay or API Router. Enabling it for a third-party model gives direct, full integration, but some capabilities may be downgraded internally by the tool.',
   'agent.codexResponsesLabel': 'Responses',
   'agent.codexResponsesHint':
     'Enable this if your third-party model supports the Responses protocol for native integration. (Carefully read the official documentation of the model you purchased to confirm whether it supports the Responses protocol.)',

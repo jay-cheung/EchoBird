@@ -158,7 +158,7 @@ const zhHans: Partial<Translations> = {
   'agent.modelsTab': '模型',
   'agent.codexRelayLabel': 'API Router',
   'agent.codexRelayHint':
-    '由 API 中转站或 API Router 提供的数据转发方案，如果你是第三方模型(如 DeepSeek / Qwen 等)请不要开启!',
+    '由 API 中转站或 API Router 提供的数据转发方案，第三方模型开启则全量接入，但部分能力可能被工具内部降级',
   'agent.codexResponsesLabel': 'Responses',
   'agent.codexResponsesHint':
     '第三方模型支持 Responses 可开启此项，原生接入（仔细阅读你购买模型的官方文档，是否支持 Responses 协议）',

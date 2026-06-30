@@ -141,6 +141,17 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
   const [claudeDesktopRelayMode, setClaudeDesktopRelayModeRaw] = useState<boolean>(() =>
     readBool('echobird_claudedesktop_relay_mode', false)
   );
+  // Claude Code routing toggle. When ON, apply_claudecode writes the real
+  // upstream URL + key + model id straight into ~/.claude/settings.json so
+  // Claude Code talks to the relay station directly. Default OFF: settings.json
+  // points ANTHROPIC_BASE_URL at our anthropic_proxy (/claudecode route, no
+  // model id), which rewrites whatever claude-* id Claude Code sends to the
+  // real upstream model — the same first-class path as Claude Desktop. Kept
+  // separate from claudeDesktopRelayMode (own backend relay file) so a user
+  // can run Claude Code and Claude Desktop on different providers.
+  const [claudeCodeRelayMode, setClaudeCodeRelayModeRaw] = useState<boolean>(() =>
+    readBool('echobird_claudecode_relay_mode', false)
+  );
   // Codex-only "Responses passthrough" toggle. Mutually exclusive with
   // codexRelayMode — the App Manager enforces at-most-one-on via auto-flip
   // in the setters; both-off is the default (legacy Bridge translation).
@@ -217,9 +228,16 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     // tool_id mismatch.
     const isCodexApp = toolId === 'codex' || toolId === 'codexdesktop';
     const isClaudeDesktopApp = toolId === 'claudedesktop';
-    const isClaudeApp = isClaudeDesktopApp || toolId === 'claudecode';
-    const isRelayCapableApp = isCodexApp || isClaudeDesktopApp;
-    const currentRelayMode = isClaudeDesktopApp ? claudeDesktopRelayMode : codexRelayMode;
+    const isClaudeCodeApp = toolId === 'claudecode';
+    const isClaudeApp = isClaudeDesktopApp || isClaudeCodeApp;
+    // Claude Code now rides the same model-id-rewrite proxy as Claude Desktop,
+    // so it's relay-capable too (relay ON = direct, OFF = our proxy/bridge).
+    const isRelayCapableApp = isCodexApp || isClaudeApp;
+    const currentRelayMode = isClaudeDesktopApp
+      ? claudeDesktopRelayMode
+      : isClaudeCodeApp
+        ? claudeCodeRelayMode
+        : codexRelayMode;
     const effectiveRelay = relayOverride ?? currentRelayMode;
     // Responses passthrough is Codex-only and mutually exclusive with relay
     // mode. The `!effectiveRelay` guard makes the two impossible to send to
@@ -352,7 +370,29 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
     [toolModelConfig, t, userModels, claude1mMode]
   );
 
-  // Claude 1M-context toggle (Claude Desktop; Claude Code in a later step).
+  // Claude Code relay-mode setter — mirrors setClaudeDesktopRelayMode but
+  // scoped to the claudecode tool (own localStorage key + own backend relay
+  // file). Re-applies on flip so settings.json is rewritten immediately.
+  const setClaudeCodeRelayMode = useCallback(
+    (v: boolean) => {
+      setClaudeCodeRelayModeRaw(v);
+      writeBool('echobird_claudecode_relay_mode', v);
+      const pendingInternalId = toolModelConfig['claudecode'];
+      if (!pendingInternalId || isOfficialModelSentinel(pendingInternalId)) return;
+      void applyModelConfig('claudecode', pendingInternalId, v).then((result) => {
+        if (result !== true) {
+          setApplyError(typeof result === 'string' ? result : t('key.destroyed'));
+        }
+      });
+    },
+    // claude1mMode is a real dep for the same reason as setClaudeDesktopRelayMode:
+    // the re-apply reads it through the captured applyModelConfig, so omitting it
+    // would re-write settings.json with a stale 1M flag.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [toolModelConfig, t, userModels, claude1mMode]
+  );
+
+  // Claude 1M-context toggle (Claude Desktop + Claude Code).
   // Re-applies on flip so the [1m] variant lands immediately.
   const setClaude1mMode = useCallback(
     (v: boolean) => {
@@ -372,12 +412,13 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         );
       }
     },
-    // claudeDesktopRelayMode is a real dep: re-applying claudedesktop reads it
-    // through the captured applyModelConfig (relayOverride=undefined here).
-    // Without it, flipping the 1M toggle after API Router re-writes the profile
-    // with a STALE relay flag, silently reverting the user's API Router setting.
+    // Both relay flags are real deps: setClaude1mMode re-applies claudedesktop
+    // AND claudecode, and each re-apply reads its relay flag through the
+    // captured applyModelConfig (relayOverride=undefined here). Omitting either
+    // would re-write that tool's config with a STALE relay flag, silently
+    // reverting the user's API Router setting.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [toolModelConfig, t, userModels, claudeDesktopRelayMode]
+    [toolModelConfig, t, userModels, claudeDesktopRelayMode, claudeCodeRelayMode]
   );
 
   // Restore = delete the tool's config file. The tool itself regenerates
@@ -515,6 +556,8 @@ export const AppManagerProvider: React.FC<AppManagerProviderProps> = ({ children
         setCodexResponsesPassthrough,
         claudeDesktopRelayMode,
         setClaudeDesktopRelayMode,
+        claudeCodeRelayMode,
+        setClaudeCodeRelayMode,
         claude1mMode,
         setClaude1mMode,
         handleLaunch,

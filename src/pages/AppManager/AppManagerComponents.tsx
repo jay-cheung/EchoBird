@@ -563,6 +563,8 @@ export const AppManagerPanel: React.FC = () => {
     setCodexResponsesPassthrough,
     claudeDesktopRelayMode,
     setClaudeDesktopRelayMode,
+    claudeCodeRelayMode,
+    setClaudeCodeRelayMode,
     claude1mMode,
     setClaude1mMode,
   } = useAppManager();
@@ -580,12 +582,21 @@ export const AppManagerPanel: React.FC = () => {
   // provider's setters auto-flip so at most one is ever on.
   const isCodexApp = selectedTool === 'codex' || selectedTool === 'codexdesktop';
   const isClaudeDesktopApp = selectedTool === 'claudedesktop';
-  const showRelayToggle = isCodexApp || isClaudeDesktopApp;
+  const isClaudeCodeApp = selectedTool === 'claudecode';
+  const showRelayToggle = isCodexApp || isClaudeDesktopApp || isClaudeCodeApp;
   const showResponsesToggle = isCodexApp;
-  const relayModeValue = isClaudeDesktopApp ? claudeDesktopRelayMode : codexRelayMode;
-  const setRelayModeValue = isClaudeDesktopApp ? setClaudeDesktopRelayMode : setCodexRelayMode;
+  const relayModeValue = isClaudeDesktopApp
+    ? claudeDesktopRelayMode
+    : isClaudeCodeApp
+      ? claudeCodeRelayMode
+      : codexRelayMode;
+  const setRelayModeValue = isClaudeDesktopApp
+    ? setClaudeDesktopRelayMode
+    : isClaudeCodeApp
+      ? setClaudeCodeRelayMode
+      : setCodexRelayMode;
   // 1M-context toggle: Claude Desktop + Claude Code.
-  const show1mToggle = isClaudeDesktopApp || selectedTool === 'claudecode';
+  const show1mToggle = isClaudeDesktopApp || isClaudeCodeApp;
 
   return (
     <>
@@ -601,11 +612,12 @@ export const AppManagerPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Toggle row: mounted when ANY toggle applies — the API Router /
-          Responses toggles (Codex, Claude Desktop) or the 1M toggle (Claude
-          Desktop, Claude Code). Each toggle inside is INDIVIDUALLY gated, so
-          e.g. Claude Code shows only 1M and never the API Router toggle
-          (which would otherwise cross-wire to Codex's relay flag). For apps
+      {/* Toggle row: mounted when ANY toggle applies — the API Router toggle
+          (Codex, Claude Desktop, Claude Code), the Responses passthrough
+          toggle (Codex only), or the 1M toggle (Claude Desktop, Claude Code).
+          Each toggle inside is INDIVIDUALLY gated and binds to the flag for the
+          selected app (relayModeValue / setRelayModeValue resolve per-app), so
+          no cross-wiring between Codex / Claude Desktop / Claude Code. For apps
           with no toggles nothing renders and the model list below claims the
           space — the user preferred no reserved gap when toggles are absent. */}
       {(showRelayToggle || show1mToggle) && (

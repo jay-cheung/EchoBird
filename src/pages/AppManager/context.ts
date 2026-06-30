@@ -43,6 +43,11 @@ export interface AppManagerContextType {
    *  two apps target different protocols / different relay-station compat. */
   claudeDesktopRelayMode: boolean;
   setClaudeDesktopRelayMode: (v: boolean) => void;
+  /** Claude Code routing toggle. Separate flag from Claude Desktop so the two
+   *  Claude apps can point at different upstreams independently (each has its
+   *  own proxy route + relay file on the backend). */
+  claudeCodeRelayMode: boolean;
+  setClaudeCodeRelayMode: (v: boolean) => void;
   /** Claude 1M-context toggle (Claude Desktop; Claude Code later). When on, the
    *  applied profile uses the `[1m]` model variant so Claude budgets 1M. */
   claude1mMode: boolean;
