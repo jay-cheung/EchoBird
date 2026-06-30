@@ -75,7 +75,8 @@ const zhHans: Partial<Translations> = {
   'settings.closeToTray': '最小化到托盘',
   'settings.alwaysAsk': '每次询问',
   'closeDialog.title': '窗口关闭方式',
-  'closeDialog.hint': '注意:如果你的 Codex / Claude 桌面端 已切换模型，退出会导致无法使用。',
+  'closeDialog.hint':
+    '注意:如果你的 Codex 桌面端 / Codex CLI / Claude 桌面端 / Claude Code 已切换模型，退出会导致无法使用。',
   'btn.addModel': '添加模型',
   'btn.save': '保存',
   'btn.close': '关闭',
@@ -158,7 +159,7 @@ const zhHans: Partial<Translations> = {
   'agent.modelsTab': '模型',
   'agent.codexRelayLabel': 'API Router',
   'agent.codexRelayHint':
-    '由 API 中转站或 API Router 提供的数据转发方案，第三方模型开启则全量接入，但部分能力可能被工具内部降级',
+    '由 API 中转站或 API Router 提供的数据转发方案，第三方模型开启则全量接入，但可能会被工具判定为“外乡人”。',
   'agent.codexResponsesLabel': 'Responses',
   'agent.codexResponsesHint':
     '第三方模型支持 Responses 可开启此项，原生接入（仔细阅读你购买模型的官方文档，是否支持 Responses 协议）',
@@ -193,7 +194,7 @@ const zhHans: Partial<Translations> = {
   'key.encrypted': '已全局加密，任何环境改变 API Key 将自毁',
   'key.destroyed': '检测到环境已改变，API Key 已自毁，请重新输入',
   'hint.devInvite':
-    '切换 Codex 桌面端 / Codex CLI / Claude 桌面端 的模型后，请保持 EchoBird 运行。',
+    '切换 Codex 桌面端 / Codex CLI / Claude 桌面端 / Claude Code 的模型后，请保持 EchoBird 运行。',
   'hint.myProjects':
     '给你 Vibe Coding 的应用或游戏切换模型，参考黑白棋和 AI 翻译的 models.json 或复制它到你的项目。',
   'mother.selectModel': '选择模型',

@@ -99,7 +99,7 @@ const ja: Partial<Translations> = {
   'settings.alwaysAsk': '毎回確認',
   'closeDialog.title': 'ウィンドウの閉じ方',
   'closeDialog.hint':
-    '注意：Codex / Claude デスクトップ版のモデルを切り替えている場合、終了すると使用できなくなります。',
+    '注意：Codex デスクトップ版 / Codex CLI / Claude デスクトップ版 / Claude Code のモデルを切り替えている場合、終了すると使用できなくなります。',
   'btn.addModel': 'モデル追加',
   'btn.save': '保存',
   'btn.close': '閉じる',
@@ -184,7 +184,7 @@ const ja: Partial<Translations> = {
   'agent.modelsTab': 'モデル',
   'agent.codexRelayLabel': 'API Router',
   'agent.codexRelayHint':
-    'API 中継または API Router が提供するデータ転送方式。サードパーティモデルで有効にするとフル接続になりますが、一部の機能がツール内部で制限される可能性があります。',
+    'API 中継または API Router が提供するデータ転送方式。サードパーティモデルで有効にするとフル接続になりますが、ツールに「よそ者」と判定される場合があります。',
   'agent.codexResponsesLabel': 'Responses',
   'agent.codexResponsesHint':
     'サードパーティモデルが Responses に対応していれば、有効化してネイティブに接続できます。（購入したモデルの公式ドキュメントをよく読み、Responses プロトコルに対応しているか確認してください。）',
@@ -220,7 +220,7 @@ const ja: Partial<Translations> = {
   'key.encrypted': '全体暗号化済み — 環境が変化すると API キーは自動消去されます',
   'key.destroyed': '環境の変化を検出。API キーが自動消去されました。再度入力してください',
   'hint.devInvite':
-    'Codex Desktop / Codex CLI / Claude Desktop のモデルを切り替えた後は、EchoBird を起動したままにしてください。',
+    'Codex Desktop / Codex CLI / Claude Desktop / Claude Code のモデルを切り替えた後は、EchoBird を起動したままにしてください。',
   'hint.myProjects':
     'Vibe Coding したアプリ / ゲームのモデルを切り替え。リバーシ / AI 翻訳 の models.json を参考にするか、あなたのプロジェクトにコピーしてください。',
   'mother.selectModel': 'モデルを選択',
